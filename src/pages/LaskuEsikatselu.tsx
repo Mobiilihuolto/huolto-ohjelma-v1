@@ -19,10 +19,10 @@ const LaskuEsikatselu = () => {
     const fetchServiceData = async () => {
       if (invoice?.huolto_id) {
         const { data: service } = await supabase
-          .from("huollot")
+          .from("Huollot")
           .select(`
             *,
-            laitteet (
+            Laitteet (
               merkki,
               malli,
               sarjanumero

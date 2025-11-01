@@ -4,9 +4,9 @@ import { Database } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 import { useCompanyId } from "@/hooks/useCompanyId";
 
-type Service = Database["public"]["Tables"]["huollot"]["Row"] & {
+type Service = Database["public"]["Tables"]["Huollot"]["Row"] & {
   asiakkaat?: Database["public"]["Tables"]["asiakkaat"]["Row"] | null;
-  laitteet?: Database["public"]["Tables"]["laitteet"]["Row"] | null;
+  laitteet?: Database["public"]["Tables"]["Laitteet"]["Row"] | null;
   tekniikat?: Database["public"]["Tables"]["tekniikat"]["Row"] | null;
   huolto_varaosat?: Array<{
     id: string;
@@ -14,57 +14,50 @@ type Service = Database["public"]["Tables"]["huollot"]["Row"] & {
     yksikkohinta: number;
   }>;
 };
-type InsertService = Database["public"]["Tables"]["huollot"]["Insert"];
+type InsertService = Database["public"]["Tables"]["Huollot"]["Insert"];
 
 // Hook for fetching services with customer and device information
 export const useServices = () => {
-  const { data: companyId } = useCompanyId();
-
   return useQuery({
-    queryKey: ["services", companyId],
-    enabled: !!companyId,
+    queryKey: ["services"],
     queryFn: async () => {
-      if (!companyId) return [];
-
-      // Get services for current company only
+      console.log("Fetching services in development mode...");
+      
+      // Get all services with new status fields
       const { data: services, error: servicesError } = await supabase
-        .from("huollot")
+        .from("Huollot")
         .select("*")
-        .eq("company_id", companyId)
         .order("created_at", { ascending: false });
-
+      
       if (servicesError) throw servicesError;
       if (!services) return [];
 
-      // Get customers for current company
+      // Get all customers
       const { data: customers, error: customersError } = await supabase
         .from("asiakkaat")
-        .select("*")
-        .eq("company_id", companyId);
-
+        .select("*");
+      
       if (customersError) throw customersError;
 
-      // Get devices for current company
+      // Get all devices
       const { data: devices, error: devicesError } = await supabase
-        .from("laitteet")
-        .select("*")
-        .eq("company_id", companyId);
-
+        .from("Laitteet")
+        .select("*");
+      
       if (devicesError) throw devicesError;
 
-      // Get technicians for current company
+      // Get all technicians
       const { data: technicians, error: techniciansError } = await supabase
         .from("tekniikat")
-        .select("*")
-        .eq("company_id", companyId);
-
+        .select("*");
+      
       if (techniciansError) throw techniciansError;
 
-      // Get service parts
+      // Get all service parts
       const { data: serviceParts, error: servicePartsError } = await supabase
         .from("huolto_varaosat")
         .select("id, huolto_id, maara, yksikkohinta");
-
+      
       if (servicePartsError) throw servicePartsError;
 
       // Join the data manually
@@ -97,7 +90,7 @@ export const useAddService = () => {
       if (!companyId) throw new Error("Company ID not found");
 
       const { data, error } = await supabase
-        .from("huollot")
+        .from("Huollot")
         .insert([{ ...service, company_id: companyId }])
         .select()
         .single();
@@ -129,7 +122,7 @@ export const useUpdateService = () => {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Service> }) => {
       const { data, error } = await supabase
-        .from("huollot")
+        .from("Huollot")
         .update(updates)
         .eq("id", id)
         .select()

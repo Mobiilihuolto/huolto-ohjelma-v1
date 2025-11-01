@@ -21,16 +21,13 @@ export interface CompanySettings {
 }
 
 export const useCompanySettings = () => {
-  const { data: companyId, isLoading: companyIdLoading } = useCompanyId();
-
+  const { data: companyId } = useCompanyId();
+  
   return useQuery({
     queryKey: ["company-settings", companyId],
     queryFn: async () => {
-      if (!companyId) {
-        console.warn("No company ID available for company settings");
-        return null;
-      }
-
+      if (!companyId) return null;
+      
       const { data, error } = await supabase
         .from("yrityksen_asetukset")
         .select("*")
@@ -38,11 +35,9 @@ export const useCompanySettings = () => {
         .eq("is_active", true)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error fetching company settings:", error);
-        throw error;
-      }
-
+      if (error) throw error;
+      
+      // Jos asetuksia ei löydy, luo oletusasetukset
       if (!data) {
         const { data: newSettings, error: insertError } = await supabase
           .from("yrityksen_asetukset")
@@ -53,26 +48,14 @@ export const useCompanySettings = () => {
           })
           .select()
           .single();
-
-        if (insertError) {
-          console.error("Error creating company settings:", insertError);
-          return {
-            id: crypto.randomUUID(),
-            company_id: companyId,
-            yrityksen_nimi: "Yrityksen nimi",
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          } as CompanySettings;
-        }
+          
+        if (insertError) throw insertError;
         return newSettings as CompanySettings;
       }
-
-      return data as CompanySettings;
+      
+      return data as CompanySettings | null;
     },
-    enabled: !!companyId && !companyIdLoading,
-    retry: 2,
-    staleTime: 1000 * 60 * 5,
+    enabled: !!companyId,
   });
 };
 

@@ -332,7 +332,7 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
       
       if (selectedDevice && selectedDevice.asiakas_id !== customerId) {
         try {
-          const { error: deviceUpdateError } = await supabase.from("laitteet")
+          const { error: deviceUpdateError } = await supabase.from("Laitteet")
             .update({ asiakas_id: customerId })
             .eq("id", selectedDeviceId);
             

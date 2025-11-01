@@ -37,7 +37,7 @@ export const useWarranties = () => {
     queryFn: async () => {
       // First get services with warranty info
       const { data: servicesData, error: servicesError } = await supabase
-        .from("huollot")
+        .from("Huollot")
         .select("*")
         .or("tyotakuu_kuukautta.gt.0,osatakuu_kuukautta.gt.0")
         .not("valmistunut_pvm", "is", null);
@@ -54,7 +54,7 @@ export const useWarranties = () => {
       // Get device info
       const deviceIds = [...new Set(servicesData.map(s => s.laite_id).filter(Boolean))];
       const { data: devicesData } = await supabase
-        .from("laitteet")
+        .from("Laitteet")
         .select("id, merkki, malli")
         .in("id", deviceIds);
 

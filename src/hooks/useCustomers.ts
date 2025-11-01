@@ -159,7 +159,7 @@ export const useCustomerDeviceCount = (customerId: string) => {
     queryKey: ["customer-device-count", customerId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("huollot")
+        .from("Huollot")
         .select("merkki, malli")
         .eq("asiakas_id", customerId);
 
@@ -187,7 +187,7 @@ export const useCustomerServiceCount = (customerId: string) => {
     queryKey: ["customer-service-count", customerId],
     queryFn: async () => {
       const { count, error } = await supabase
-        .from("huollot")
+        .from("Huollot")
         .select("*", { count: "exact", head: true })
         .eq("asiakas_id", customerId);
 

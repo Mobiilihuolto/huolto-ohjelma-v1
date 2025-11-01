@@ -604,8 +604,8 @@ const Asetukset = () => {
       // Fetch all data from important tables
       const [customers, services, devices, statuses, pricing, warranty, numbering, techniciansList] = await Promise.all([
         supabase.from('asiakkaat').select('*'),
-        supabase.from('huollot').select('*'),
-        supabase.from('laitteet').select('*'),
+        supabase.from('Huollot').select('*'),
+        supabase.from('Laitteet').select('*'),
         supabase.from('service_statuses').select('*'),
         supabase.from('hinnoittelu_asetukset').select('*'),
         supabase.from('takuu_asetukset').select('*'),
@@ -680,8 +680,8 @@ const Asetukset = () => {
 
       // Delete existing data (in reverse order due to foreign keys)
       await Promise.all([
-        supabase.from('huollot').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        supabase.from('laitteet').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('Huollot').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('Laitteet').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         supabase.from('asiakkaat').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         supabase.from('service_statuses').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         supabase.from('hinnoittelu_asetukset').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
@@ -697,10 +697,10 @@ const Asetukset = () => {
         insertPromises.push(supabase.from('asiakkaat').insert(data.asiakkaat));
       }
       if (data.laitteet && data.laitteet.length > 0) {
-        insertPromises.push(supabase.from('laitteet').insert(data.laitteet));
+        insertPromises.push(supabase.from('Laitteet').insert(data.laitteet));
       }
       if (data.huollot && data.huollot.length > 0) {
-        insertPromises.push(supabase.from('huollot').insert(data.huollot));
+        insertPromises.push(supabase.from('Huollot').insert(data.huollot));
       }
       if (data.service_statuses && data.service_statuses.length > 0) {
         insertPromises.push(supabase.from('service_statuses').insert(data.service_statuses));
@@ -780,7 +780,7 @@ const Asetukset = () => {
 
       // 3. Delete Huollot (services)
       const { error: serviceError } = await supabase
-        .from("huollot")
+        .from("Huollot")
         .delete()
         .neq('id', '00000000-0000-0000-0000-000000000000');
       
@@ -788,7 +788,7 @@ const Asetukset = () => {
 
       // 4. Delete Laitteet (devices)
       const { error: deviceError } = await supabase
-        .from("laitteet")
+        .from("Laitteet")
         .delete()
         .neq('id', '00000000-0000-0000-0000-000000000000');
       

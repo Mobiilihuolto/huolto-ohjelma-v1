@@ -8,7 +8,5 @@
   "completedServices": "Valmiit huollot",
   "criticalParts": "Kriittiset varaosat",
   "noResults": "Ei tuloksia",
-  "viewAll": "Näytä kaikki",
-  "loading": "Ladataan dashboardia...",
-  "loadingSlow": "Lataus kestää odotettua kauemmin. Yritä päivittää sivu."
+  "viewAll": "Näytä kaikki"
 }

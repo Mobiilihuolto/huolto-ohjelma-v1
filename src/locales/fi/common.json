@@ -55,7 +55,7 @@
   "showingCriticalOnly": "Näytetään vain kriittiset",
   "managePartsStockAndInfo": "Hallinnoi varaosien saldoja ja tietoja",
   "inProgress": "Käynnissä",
-  "completed": "Valmiit",
-  "all": "Kaikki",
-  "refresh": "Päivitä"
+"completed": "Valmiit",
+"all": "Kaikki"
+
 }

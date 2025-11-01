@@ -8,12 +8,11 @@ import { Loader2, Upload, Building2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export const CompanySettingsForm = () => {
-  const { data: settings, isLoading, isError } = useCompanySettings();
+  const { data: settings, isLoading } = useCompanySettings();
   const updateSettings = useUpdateCompanySettings();
   const uploadLogo = useUploadLogo();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   const [formData, setFormData] = useState({
     yrityksen_nimi: "",
@@ -28,17 +27,6 @@ export const CompanySettingsForm = () => {
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-
-  useEffect(() => {
-    if (isLoading) {
-      const timer = setTimeout(() => {
-        setLoadingTimeout(true);
-      }, 10000);
-      return () => clearTimeout(timer);
-    } else {
-      setLoadingTimeout(false);
-    }
-  }, [isLoading]);
 
   useEffect(() => {
     if (settings) {
@@ -128,36 +116,11 @@ export const CompanySettingsForm = () => {
     });
   };
 
-  if (isLoading && !loadingTimeout) {
+  if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 gap-4">
+      <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="text-sm text-muted-foreground">Ladataan yrityksen tietoja...</p>
       </div>
-    );
-  }
-
-  if (loadingTimeout || isError) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Yrityksen tiedot
-          </CardTitle>
-          <CardDescription>
-            {isError ? "Virhe ladattaessa yrityksen tietoja." : "Lataus kestää odotettua kauemmin."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Ole hyvä ja päivitä sivu tai yritä myöhemmin uudelleen.
-          </p>
-          <Button onClick={() => window.location.reload()}>
-            Päivitä sivu
-          </Button>
-        </CardContent>
-      </Card>
     );
   }
 

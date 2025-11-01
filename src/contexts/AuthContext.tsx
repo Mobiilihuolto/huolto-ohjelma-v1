@@ -22,10 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (isMounted) {
-          console.log('Auth state changed:', event, session ? 'User logged in' : 'No user');
           setSession(session);
           setUser(session?.user ?? null);
           setLoading(false);
@@ -33,19 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Error getting session:', error);
-      }
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (isMounted) {
-        console.log('Initial session check:', session ? 'User found' : 'No user');
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    }).catch((error) => {
-      console.error('Failed to get session:', error);
-      if (isMounted) {
         setLoading(false);
       }
     });

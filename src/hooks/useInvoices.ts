@@ -8,7 +8,7 @@ import { useCompanyId } from "@/hooks/useCompanyId";
 
 type Invoice = Database["public"]["Tables"]["laskut"]["Row"] & {
   asiakkaat?: Database["public"]["Tables"]["asiakkaat"]["Row"] | null;
-  Huollot?: Database["public"]["Tables"]["huollot"]["Row"] | null;
+  Huollot?: Database["public"]["Tables"]["Huollot"]["Row"] | null;
 };
 type InsertInvoice = Database["public"]["Tables"]["laskut"]["Insert"];
 
@@ -42,17 +42,17 @@ export const useInvoices = (searchTerm: string = "") => {
 
       // Get all services with device information
       const { data: services, error: servicesError } = await supabase
-        .from("huollot")
+        .from("Huollot")
         .select(`
-          id,
-          numero,
-          kuvaus,
+          id, 
+          numero, 
+          kuvaus, 
           status,
           merkki,
           malli,
           sarjanumero,
           valmistunut_pvm,
-          laitteet (
+          Laitteet (
             merkki,
             malli,
             sarjanumero
@@ -138,7 +138,7 @@ export const useCreateInvoiceFromService = () => {
     }) => {
       // First, get the service details
       const { data: service, error: serviceError } = await supabase
-        .from("huollot")
+        .from("Huollot")
         .select("*")
         .eq("id", serviceId)
         .single();

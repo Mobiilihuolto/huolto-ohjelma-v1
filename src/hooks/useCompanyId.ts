@@ -8,58 +8,14 @@ export const useCompanyId = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("company_id")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error fetching profile:", error);
-        return null;
-      }
-
-      if (!data) {
-        const newCompanyId = crypto.randomUUID();
-
-        const { data: newProfile, error: insertError } = await supabase
-          .from("profiles")
-          .insert({
-            user_id: user.id,
-            company_id: newCompanyId,
-            email: user.email,
-            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-            role: 'admin'
-          })
-          .select("company_id")
-          .single();
-
-        if (insertError) {
-          console.error("Error creating profile:", insertError);
-          return newCompanyId;
-        }
-
-        return newProfile?.company_id || newCompanyId;
-      }
-
-      if (!data.company_id) {
-        const newCompanyId = crypto.randomUUID();
-
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ company_id: newCompanyId })
-          .eq("user_id", user.id);
-
-        if (updateError) {
-          console.error("Error updating company_id:", updateError);
-        }
-
-        return newCompanyId;
-      }
-
-      return data.company_id;
+      if (error) throw error;
+      return data?.company_id || null;
     },
-    retry: 1,
-    staleTime: 1000 * 60 * 5,
   });
 };
