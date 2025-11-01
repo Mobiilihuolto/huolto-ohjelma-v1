@@ -4,9 +4,9 @@ import { Database } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 import { useCompanyId } from "@/hooks/useCompanyId";
 
-type Service = Database["public"]["Tables"]["Huollot"]["Row"] & {
+type Service = Database["public"]["Tables"]["huollot"]["Row"] & {
   asiakkaat?: Database["public"]["Tables"]["asiakkaat"]["Row"] | null;
-  laitteet?: Database["public"]["Tables"]["Laitteet"]["Row"] | null;
+  laitteet?: Database["public"]["Tables"]["laitteet"]["Row"] | null;
   tekniikat?: Database["public"]["Tables"]["tekniikat"]["Row"] | null;
   huolto_varaosat?: Array<{
     id: string;
@@ -14,7 +14,7 @@ type Service = Database["public"]["Tables"]["Huollot"]["Row"] & {
     yksikkohinta: number;
   }>;
 };
-type InsertService = Database["public"]["Tables"]["Huollot"]["Insert"];
+type InsertService = Database["public"]["Tables"]["huollot"]["Insert"];
 
 // Hook for fetching services with customer and device information
 export const useServices = () => {
@@ -25,7 +25,7 @@ export const useServices = () => {
       
       // Get all services with new status fields
       const { data: services, error: servicesError } = await supabase
-        .from("Huollot")
+        .from("huollot")
         .select("*")
         .order("created_at", { ascending: false });
       
@@ -41,7 +41,7 @@ export const useServices = () => {
 
       // Get all devices
       const { data: devices, error: devicesError } = await supabase
-        .from("Laitteet")
+        .from("laitteet")
         .select("*");
       
       if (devicesError) throw devicesError;
@@ -90,7 +90,7 @@ export const useAddService = () => {
       if (!companyId) throw new Error("Company ID not found");
 
       const { data, error } = await supabase
-        .from("Huollot")
+        .from("huollot")
         .insert([{ ...service, company_id: companyId }])
         .select()
         .single();
@@ -122,7 +122,7 @@ export const useUpdateService = () => {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Service> }) => {
       const { data, error } = await supabase
-        .from("Huollot")
+        .from("huollot")
         .update(updates)
         .eq("id", id)
         .select()

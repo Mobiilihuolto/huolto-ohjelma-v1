@@ -4,10 +4,10 @@ import { Database } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 import { useCompanyId } from "@/hooks/useCompanyId";
 
-type Device = Database["public"]["Tables"]["Laitteet"]["Row"] & {
+type Device = Database["public"]["Tables"]["laitteet"]["Row"] & {
   asiakkaat?: Database["public"]["Tables"]["asiakkaat"]["Row"] | null;
 };
-type InsertDevice = Database["public"]["Tables"]["Laitteet"]["Insert"];
+type InsertDevice = Database["public"]["Tables"]["laitteet"]["Insert"];
 
 // Hook for fetching devices with customer information
 export const useDevices = (searchTerm = "") => {
@@ -16,7 +16,7 @@ export const useDevices = (searchTerm = "") => {
     queryFn: async () => {
       console.log("Fetching devices in development mode...");
       // Hae kaikki laitteet (ei enää asiakaskohtaisia)
-      let devicesQuery = supabase.from("Laitteet").select("*");
+      let devicesQuery = supabase.from("laitteet").select("*");
 
       if (searchTerm) {
         devicesQuery = devicesQuery.or(
@@ -66,7 +66,7 @@ export const useAddDevice = () => {
       console.log("🔧 useAddDevice: Tallennetaan data:", deviceData);
       
       const { data, error } = await supabase
-        .from("Laitteet")
+        .from("laitteet")
         .insert([deviceData])
         .select()
         .single();
@@ -109,7 +109,7 @@ export const useUpdateDevice = () => {
       console.log("🔧 useUpdateDevice: Päivitetään laite:", id, updates);
       
       const { data, error } = await supabase
-        .from("Laitteet")
+        .from("laitteet")
         .update(updates)
         .eq("id", id)
         .select()
@@ -147,7 +147,7 @@ export const useDeviceServiceCount = (deviceId: string) => {
     queryKey: ["device-services", deviceId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("Huollot")
+        .from("huollot")
         .select("id")
         .eq("laite_id", deviceId);
 
@@ -163,7 +163,7 @@ export const useLastServiceDate = (deviceId: string) => {
     queryKey: ["last-service", deviceId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("Huollot")
+        .from("huollot")
         .select("created_at")
         .eq("laite_id", deviceId)
         .order("created_at", { ascending: false })

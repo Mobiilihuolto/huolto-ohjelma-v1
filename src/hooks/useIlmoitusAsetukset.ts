@@ -141,7 +141,7 @@ export const useSendTestEmail = () => {
       } else if (type === "service_ready") {
         // Get the latest service to use for testing
         const { data: services, error: serviceError } = await supabase
-          .from("Huollot")
+          .from("huollot")
           .select("id, asiakas_id")
           .limit(1)
           .maybeSingle();

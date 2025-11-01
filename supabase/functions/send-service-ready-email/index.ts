@@ -31,7 +31,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Fetch service data
     const { data: service, error: serviceError } = await supabase
-      .from("Huollot")
+      .from("huollot")
       .select("*")
       .eq("id", serviceId)
       .single();
@@ -55,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Fetch device data separately if exists
     const { data: device } = await supabase
-      .from("Laitteet")
+      .from("laitteet")
       .select("merkki, malli")
       .eq("id", service.laite_id)
       .maybeSingle();
