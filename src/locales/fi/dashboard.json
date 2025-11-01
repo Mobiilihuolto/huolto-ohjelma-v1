@@ -1,0 +1,14 @@
+{
+  "quickSearch": "Pikahaku",
+  "searchPlaceholder": "Hae asiakkaita, laitteita tai huoltoja",
+  "newCustomer": "Uusi asiakas",
+  "newDevice": "Uusi laite",
+  "newService": "Uusi huolto",
+  "ongoingServices": "Käynnissä olevat huollot",
+  "completedServices": "Valmiit huollot",
+  "criticalParts": "Kriittiset varaosat",
+  "noResults": "Ei tuloksia",
+  "viewAll": "Näytä kaikki",
+  "loading": "Ladataan dashboardia...",
+  "loadingSlow": "Lataus kestää odotettua kauemmin. Yritä päivittää sivu."
+}

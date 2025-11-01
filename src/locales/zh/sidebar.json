@@ -1,0 +1,11 @@
+{
+  "appName": "维修程序",
+  "dashboard": "仪表板",
+  "customers": "客户",
+  "devices": "设备",
+  "services": "维修",
+  "invoicing": "发票",
+  "inventory": "库存",
+  "warranty": "保修",
+  "settings": "设置"
+}

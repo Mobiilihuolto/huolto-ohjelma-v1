@@ -1,0 +1,12 @@
+{
+  "quickSearch": "Schnellsuche",
+  "searchPlaceholder": "Kunden, Geräte oder Reparaturen suchen",
+  "newCustomer": "Neuer Kunde",
+  "newDevice": "Neues Gerät",
+  "newService": "Neue Reparatur",
+  "ongoingServices": "Laufende Reparaturen",
+  "completedServices": "Abgeschlossene Reparaturen",
+  "criticalParts": "Kritische Teile",
+  "noResults": "Keine Ergebnisse",
+  "viewAll": "Alle anzeigen"
+}

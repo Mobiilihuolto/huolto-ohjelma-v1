@@ -1,0 +1,11 @@
+{
+  "appName": "App de Mantenimiento",
+  "dashboard": "Panel",
+  "customers": "Clientes",
+  "devices": "Dispositivos",
+  "services": "Servicios",
+  "invoicing": "Facturación",
+  "inventory": "Inventario",
+  "warranty": "Garantía",
+  "settings": "Configuración"
+}

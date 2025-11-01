@@ -1,0 +1,9 @@
+{
+  "appTitle": "Huolto-ohjelma",
+  "signOut": "Kirjaudu ulos",
+  "profile": "Profiili",
+  "account": "Tili",
+  "roleAdmin": "Pääkäyttäjä",
+  "roleTeknikko": "Teknikko",
+  "roleKayttaja": "Käyttäjä"
+}

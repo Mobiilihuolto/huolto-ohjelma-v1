@@ -1,0 +1,11 @@
+{
+  "appName": "Maintenance App",
+  "dashboard": "Dashboard",
+  "customers": "Customers",
+  "devices": "Devices",
+  "services": "Services",
+  "invoicing": "Invoicing",
+  "inventory": "Inventory",
+  "warranty": "Warranty",
+  "settings": "Settings"
+}

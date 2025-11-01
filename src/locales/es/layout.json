@@ -1,0 +1,9 @@
+{
+  "appTitle": "Aplicación de Mantenimiento",
+  "signOut": "Cerrar sesión",
+  "profile": "Perfil",
+  "account": "Cuenta",
+  "roleAdmin": "Administrador",
+  "roleTeknikko": "Técnico",
+  "roleKayttaja": "Usuario"
+}

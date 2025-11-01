@@ -1,0 +1,11 @@
+{
+  "appName": "Huolto-ohjelma",
+  "dashboard": "Dashboard",
+  "customers": "Asiakkaat",
+  "devices": "Laitteet",
+  "services": "Huollot",
+  "invoicing": "Laskutus",
+  "inventory": "Varasto",
+  "warranty": "Takuu",
+  "settings": "Asetukset"
+}

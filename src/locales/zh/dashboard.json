@@ -1,0 +1,12 @@
+{
+  "quickSearch": "快速搜索",
+  "searchPlaceholder": "搜索客户、设备或维修",
+  "newCustomer": "新客户",
+  "newDevice": "新设备",
+  "newService": "新维修",
+  "ongoingServices": "进行中的维修",
+  "completedServices": "已完成的维修",
+  "criticalParts": "关键零件",
+  "noResults": "无结果",
+  "viewAll": "查看全部"
+}

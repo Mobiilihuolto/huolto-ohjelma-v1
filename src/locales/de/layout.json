@@ -1,0 +1,9 @@
+{
+  "appTitle": "Wartungsanwendung",
+  "signOut": "Abmelden",
+  "profile": "Profil",
+  "account": "Konto",
+  "roleAdmin": "Administrator",
+  "roleTeknikko": "Techniker",
+  "roleKayttaja": "Benutzer"
+}

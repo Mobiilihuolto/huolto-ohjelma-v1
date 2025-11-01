@@ -1,0 +1,11 @@
+{
+  "appName": "Wartungs-App",
+  "dashboard": "Dashboard",
+  "customers": "Kunden",
+  "devices": "Geräte",
+  "services": "Reparaturen",
+  "invoicing": "Rechnungen",
+  "inventory": "Lager",
+  "warranty": "Garantie",
+  "settings": "Einstellungen"
+}

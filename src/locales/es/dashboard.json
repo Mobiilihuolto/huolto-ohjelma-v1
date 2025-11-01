@@ -1,0 +1,12 @@
+{
+  "quickSearch": "Búsqueda Rápida",
+  "searchPlaceholder": "Buscar clientes, dispositivos o servicios",
+  "newCustomer": "Nuevo Cliente",
+  "newDevice": "Nuevo Dispositivo",
+  "newService": "Nuevo Servicio",
+  "ongoingServices": "Servicios en Curso",
+  "completedServices": "Servicios Completados",
+  "criticalParts": "Piezas Críticas",
+  "noResults": "Sin resultados",
+  "viewAll": "Ver Todo"
+}
