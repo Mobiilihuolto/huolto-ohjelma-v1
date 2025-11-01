@@ -44,6 +44,7 @@ import { UserManagementForm } from "@/components/UserManagementForm";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LicenseGenerator } from "@/components/LicenseGenerator";
+import { LicenseList } from "@/components/LicenseList";
 
 const Asetukset = () => {
   const { canManageSettings, canManageUsers, isLoading: permissionsLoading } = useUserPermissions();
@@ -905,8 +906,9 @@ const Asetukset = () => {
         )}
 
         {canManageSettings && (
-          <TabsContent value="licenses">
+          <TabsContent value="licenses" className="space-y-6">
             <LicenseGenerator />
+            <LicenseList />
           </TabsContent>
         )}
 

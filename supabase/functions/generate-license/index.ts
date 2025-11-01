@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 interface GenerateLicenseRequest {
-  planType?: 'basic' | 'pro' | 'enterprise';
   maxUsers?: number;
   expiresInDays?: number | null;
   notes?: string;
@@ -67,7 +66,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     const body: GenerateLicenseRequest = await req.json();
     const {
-      planType = 'basic',
       maxUsers = 5,
       expiresInDays = null,
       notes = ''
@@ -105,7 +103,6 @@ const handler = async (req: Request): Promise<Response> => {
       .from('licenses')
       .insert({
         license_key: licenseKey,
-        plan_type: planType,
         max_users: maxUsers,
         expires_at: expiresAt,
         notes: notes || `Luotu ${new Date().toLocaleDateString('fi-FI')}`,

@@ -4,14 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Copy, Key } from "lucide-react";
 
 export function LicenseGenerator() {
   const [loading, setLoading] = useState(false);
-  const [planType, setPlanType] = useState<'basic' | 'pro' | 'enterprise'>('basic');
   const [maxUsers, setMaxUsers] = useState(5);
   const [expiresInDays, setExpiresInDays] = useState<number | null>(365);
   const [notes, setNotes] = useState('');
@@ -22,7 +20,6 @@ export function LicenseGenerator() {
     try {
       const { data, error } = await supabase.functions.invoke('generate-license', {
         body: {
-          planType,
           maxUsers,
           expiresInDays,
           notes
@@ -64,20 +61,6 @@ export function LicenseGenerator() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="planType">Lisenssityyppi</Label>
-          <Select value={planType} onValueChange={(value: any) => setPlanType(value)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="basic">Basic (5 käyttäjää)</SelectItem>
-              <SelectItem value="pro">Pro (15 käyttäjää)</SelectItem>
-              <SelectItem value="enterprise">Enterprise (rajoittamaton)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="maxUsers">Maksimi käyttäjämäärä</Label>
           <Input
             id="maxUsers"
@@ -85,8 +68,10 @@ export function LicenseGenerator() {
             min="1"
             max="999"
             value={maxUsers}
-            onChange={(e) => setMaxUsers(parseInt(e.target.value) || 5)}
+            onChange={(e) => setMaxUsers(parseInt(e.target.value) || 1)}
+            placeholder="Esim. 1, 5, 10, 50..."
           />
+          <p className="text-xs text-muted-foreground">Anna haluamasi käyttäjämäärä (1-999)</p>
         </div>
 
         <div className="space-y-2">
