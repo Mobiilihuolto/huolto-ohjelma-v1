@@ -7,40 +7,63 @@ import { useCompanyId } from "@/hooks/useCompanyId";
 type AlvSetting = {
   id: string;
   nimi: string;
-  alv_prosentti: number;
+  prosentti: number;
   is_active: boolean;
   is_default: boolean;
   created_at: string;
-  updated_at: string;
 };
 
 type InsertAlvSetting = {
   nimi: string;
-  alv_prosentti: number;
+  prosentti: number;
   is_active?: boolean;
   is_default?: boolean;
 };
 
 type UpdateAlvSetting = {
   nimi?: string;
-  alv_prosentti?: number;
+  prosentti?: number;
   is_active?: boolean;
   is_default?: boolean;
 };
 
-// Hook for fetching all ALV settings  
+// Hook for fetching all ALV settings
 export const useAlvSettings = () => {
+  const { data: companyId } = useCompanyId();
+
   return useQuery({
-    queryKey: ["alv-settings"],
+    queryKey: ["alv-settings", companyId],
     queryFn: async () => {
+      if (!companyId) return [];
+
       const { data, error } = await supabase
         .from("alv_asetukset")
         .select("*")
-        .order("nimi");
+        .eq("company_id", companyId)
+        .order("prosentti");
 
       if (error) throw error;
+
+      // If no settings exist, create default 25.5% ALV
+      if (!data || data.length === 0) {
+        const { data: newData, error: insertError } = await supabase
+          .from("alv_asetukset")
+          .insert({
+            company_id: companyId,
+            nimi: "Suomi ALV 25,5%",
+            prosentti: 25.5,
+            is_default: true,
+            is_active: true
+          })
+          .select();
+
+        if (insertError) throw insertError;
+        return newData as AlvSetting[];
+      }
+
       return data as AlvSetting[];
     },
+    enabled: !!companyId,
   });
 };
 
@@ -69,8 +92,8 @@ export const useDefaultAlvSetting = () => {
           .from("alv_asetukset")
           .insert({
             company_id: companyId,
-            nimi: "ALV 25.5%",
-            alv_prosentti: 25.5,
+            nimi: "Suomi ALV 25,5%",
+            prosentti: 25.5,
             is_default: true,
             is_active: true
           })

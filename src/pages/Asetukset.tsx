@@ -366,8 +366,8 @@ const Asetukset = () => {
     
     addAlvSetting.mutate({
       nimi: newAlvName.trim(),
-      alv_prosentti: rate,
-      is_default: alvSettings?.length === 0 // Set as default if it's the first one
+      prosentti: rate,
+      is_default: alvSettings?.length === 0
     });
     
     setNewAlvName("");
@@ -377,7 +377,7 @@ const Asetukset = () => {
   const handleEditAlv = (alv: any) => {
     setEditingAlv(alv.id);
     setEditAlvName(alv.nimi);
-    setEditAlvRate(alv.alv_prosentti?.toString() || "");
+    setEditAlvRate(alv.prosentti?.toString() || "");
   };
 
   const handleSaveAlvEdit = () => {
@@ -397,7 +397,7 @@ const Asetukset = () => {
       id: editingAlv,
       updates: {
         nimi: editAlvName.trim(),
-        alv_prosentti: rate
+        prosentti: rate
       }
     });
     
@@ -1567,7 +1567,7 @@ const Asetukset = () => {
                           <div className="flex items-center gap-2">
                             <div className="font-medium">{alv.nimi}</div>
                             <Badge variant="outline" className="text-xs">
-                              {alv.alv_prosentti}%
+                              {alv.prosentti}%
                             </Badge>
                             {alv.is_default && (
                               <Badge variant="default" className="text-xs">
@@ -1602,9 +1602,9 @@ const Asetukset = () => {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleDeleteAlv(alv.id)}
-                            disabled={deleteAlvSetting.isPending || alv.is_default}
+                            disabled={deleteAlvSetting.isPending}
                             className="hover:text-destructive"
-                            title={alv.is_default ? "Et voi poistaa oletusasetusta" : "Poista"}
+                            title="Poista"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
