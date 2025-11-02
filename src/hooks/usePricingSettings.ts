@@ -21,7 +21,7 @@ export const useFixedPriceSettings = () => {
         .select("*")
         .eq("company_id", companyId)
         .eq("is_active", true)
-        .eq("hinnoittelu_tyyppi", "kertamaksu")
+        .eq("tyyppi", "kertamaksu")
         .order("nimi");
 
       if (error) throw error;
@@ -45,7 +45,7 @@ export const useHourlyRateSettings = () => {
         .select("*")
         .eq("company_id", companyId)
         .eq("is_active", true)
-        .eq("hinnoittelu_tyyppi", "tuntiveloitus")
+        .eq("tyyppi", "tuntiveloitus")
         .order("nimi");
 
       if (error) throw error;
