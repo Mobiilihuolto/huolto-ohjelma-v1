@@ -276,18 +276,6 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
-          <p>
-            {t('auth:terms.text')}{' '}
-            <a href="/terms" className="underline hover:text-primary">
-              {t('auth:terms.link')}
-            </a>
-            {' '}{t('auth:terms.and')}{' '}
-            <a href="/privacy" className="underline hover:text-primary">
-              {t('auth:terms.privacy')}
-            </a>
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );
