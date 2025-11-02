@@ -46,7 +46,6 @@ import { ServiceEditForm } from "@/components/ServiceEditForm";
 import { useTranslation } from 'react-i18next';
 
 const Dashboard = () => {
-  console.log("Dashboard component loading...");
   const { t } = useTranslation(['dashboard', 'common']);
   
   const [showServiceForm, setShowServiceForm] = useState(false);

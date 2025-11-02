@@ -43,7 +43,6 @@ export const DeviceForm = ({ open, onOpenChange, device = null }: DeviceFormProp
   }, [device, open, setValue, reset]);
 
   const onSubmit = (data: DeviceFormData) => {
-    console.log("🔧 DeviceForm: onSubmit kutsuttu:", data, "EditMode:", isEditMode);
     
     if (isEditMode && device) {
       // Update existing device
@@ -51,7 +50,6 @@ export const DeviceForm = ({ open, onOpenChange, device = null }: DeviceFormProp
         { id: device.id, updates: data },
         {
           onSuccess: () => {
-            console.log("🔧 DeviceForm: Update onSuccess");
             reset();
             onOpenChange(false);
           },
@@ -62,7 +60,6 @@ export const DeviceForm = ({ open, onOpenChange, device = null }: DeviceFormProp
       const deviceData = { ...data, asiakas_id: null };
       addDeviceMutation.mutate(deviceData, {
         onSuccess: () => {
-          console.log("🔧 DeviceForm: Add onSuccess - nollaan lomakkeen");
           reset();
           onOpenChange(false);
         },

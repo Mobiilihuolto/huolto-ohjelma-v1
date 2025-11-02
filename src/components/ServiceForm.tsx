@@ -116,8 +116,6 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
   useEffect(() => {
     const initializeTechnician = async () => {
       if (open && hasRole(currentUserRoles, 'teknikko') && technicians && !selectedTechnicianId) {
-        console.log("🔍 Tekniikat:", technicians);
-        console.log("🔍 Käyttäjän roolit:", currentUserRoles);
         
         try {
           // Get current user
@@ -128,7 +126,6 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
           const existingTechnician = technicians.find(t => t.user_id === user.id);
           
           if (!existingTechnician) {
-            console.log("⚠️ Teknikkoa ei löytynyt, lisätään automaattisesti...");
             // Add user to tekniikat table
             await ensureTechnicianMutation.mutateAsync();
             
@@ -145,13 +142,11 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
               
               if (refreshedTechnicians && refreshedTechnicians.length > 0) {
                 setSelectedTechnicianId(refreshedTechnicians[0].id);
-                console.log("✅ Teknikko asetettu automaattisesti:", refreshedTechnicians[0].nimi);
               }
             }, 500);
           } else {
             // User already exists, just select them
             setSelectedTechnicianId(existingTechnician.id);
-            console.log("✅ Teknikko asetettu automaattisesti:", existingTechnician.nimi);
           }
         } catch (error) {
           console.error("❌ Teknikon alustus epäonnistui:", error);
@@ -235,29 +230,12 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
     device.merkki && device.malli // Varmista että kentät eivät ole tyhjiä
   );
 
-  console.log("🔧 Device existence check:", {
-    deviceBrand: deviceBrand.trim(),
-    deviceModel: deviceModel.trim(), 
-    devicesCount: devices?.length || 0,
-    deviceExistsInGeneral,
-    allDevices: devices?.map(d => ({ merkki: d.merkki, malli: d.malli }))
-  });
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!description.trim()) {
       return;
     }
-
-    console.log("🔧 Submit aloitettu:", {
-      selectedDeviceId,
-      deviceBrand: deviceBrand.trim(),
-      deviceModel: deviceModel.trim(),
-      selectedCustomerId,
-      showNewCustomer,
-      deviceExistsInGeneral
-    });
 
     // Jos syötetään uusi laite ja se ei ole jo olemassa
     const shouldShowDialog = !selectedDeviceId && 
@@ -266,41 +244,20 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
                             !deviceExistsInGeneral &&
                             (selectedCustomerId || showNewCustomer); // Vaaditaan asiakas
 
-    console.log("🔧 Dialog decision:", {
-      selectedDeviceId: !!selectedDeviceId,
-      hasBrand: !!deviceBrand.trim(),
-      hasModel: !!deviceModel.trim(),
-      deviceExistsInGeneral,
-      hasCustomer: !!(selectedCustomerId || showNewCustomer),
-      shouldShowDialog
-    });
-
-    console.log("🔧 Pitäisikö näyttää dialogi:", shouldShowDialog);
-
     if (shouldShowDialog) {
-      console.log("🔧 === NÄYTETÄÄN LAITE TALLENNUS DIALOGI ===");
-      console.log("🔧 Laitteen tiedot dialogiin:", {
-        merkki: deviceBrand.trim(),
-        malli: deviceModel.trim(),
-        sarjanumero: deviceSerial.trim()
-      });
       setShowDeviceSaveDialog(true);
       return;
     }
 
-    console.log("🔧 Ei näytetä dialogia, jatketaan suoraan tallennukseen");
     await processServiceSubmission();
   };
 
   const processServiceSubmission = async (shouldSaveDevice?: boolean) => {
-    console.log("🔧 === PROCESS SERVICE SUBMISSION ALOITETTU ===");
     const actualSaveDevice = shouldSaveDevice !== undefined ? shouldSaveDevice : saveDevicePermanently;
-    console.log("🔧 Should save device permanently:", actualSaveDevice);
     let customerId = selectedCustomerId;
 
     // Jos luodaan uusi asiakas, luo se ensin
     if (showNewCustomer && newCustomerName.trim()) {
-      console.log("🔧 Luodaan uusi asiakas:", newCustomerName);
       try {
         const newCustomer = await addCustomerMutation.mutateAsync({
           nimi: newCustomerName.trim(),
@@ -313,7 +270,6 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
           alv_numero: newCustomerType === "yritys" ? newCustomerAlvNumero.trim() || null : null,
         });
         customerId = newCustomer.id;
-        console.log("✅ Asiakas luotu:", customerId);
       } catch (error) {
         console.error("❌ Virhe luotaessa asiakasta:", error);
         return;
@@ -322,9 +278,6 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
 
     let deviceId = selectedDeviceId;
 
-    console.log("🔧 Tallennetaanko laite pysyvästi?", actualSaveDevice);
-    console.log("🔧 Onko laite valittu?", !!selectedDeviceId);
-    console.log("🔧 Laitteen tiedot:", { deviceBrand: deviceBrand.trim(), deviceModel: deviceModel.trim() });
 
     // Linkitä olemassa oleva laite asiakkaaseen automaattisesti jos tarpeen
     if (selectedDeviceId && customerId) {
@@ -339,7 +292,6 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
           if (deviceUpdateError) {
             console.error("Virhe päivitettäessä laitteen asiakasta:", deviceUpdateError);
           } else {
-            console.log("✅ Laite linkitetty asiakkaaseen:", customerId);
           }
         } catch (error) {
           console.error("❌ Virhe linkitettäessä laitetta asiakkaaseen:", error);
@@ -349,7 +301,6 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
 
     // Jos valittiin tallentaa laite pysyvästi, luo se Laitteet-osioon
     if (actualSaveDevice && !selectedDeviceId && deviceBrand.trim() && deviceModel.trim()) {
-      console.log("🔧 TALLENNETAAN LAITE PYSYVÄSTI Laitteet-osioon!");
       try {
         const finalBrand = deviceBrand === "__custom__" ? customManufacturer.trim() : deviceBrand.trim();
         const deviceData = {
@@ -359,14 +310,11 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
           asiakas_id: null, // Yleinen laite, ei sidottu asiakkaaseen
         };
         
-        console.log("🔧 Tallennettava laite data:", deviceData);
         
         const newDevice = await addDeviceMutation.mutateAsync(deviceData);
-        console.log("✅ Laite tallennettu Laitteet-osioon onnistuneesti:", newDevice);
         
         // Aseta deviceId jotta huoltotyö linkittyy laitteeseen
         deviceId = newDevice.id;
-        console.log("🔧 DeviceId asetettu:", deviceId);
         
         // Päivitä devices query eksplisiittisesti
         await new Promise(resolve => setTimeout(resolve, 300));
@@ -376,22 +324,9 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
         return;
       }
     } else if (!actualSaveDevice && !selectedDeviceId && deviceBrand.trim() && deviceModel.trim()) {
-      console.log("🔧 Laite tallennetaan VAIN huoltotyöhön (ei Laitteet-osioon)");
-      console.log("🔧 deviceId pysyy null-arvona");
       // deviceId pysyy null, laitteen tiedot tallennetaan huoltotyöhön suoraan
     } else if (selectedDeviceId) {
-      console.log("🔧 Käytetään valittua laitetta, deviceId:", selectedDeviceId);
     }
-
-    console.log("🔧 Luodaan huoltotyö:", { 
-      customerId, 
-      deviceId, 
-      description: description.trim(),
-      actualSaveDevice,
-      deviceBrand: deviceBrand.trim(),
-      deviceModel: deviceModel.trim(),
-      finalDeviceId: deviceId
-    });
 
     // Get default status
     const defaultStatus = statusesData?.find(s => s.is_default);
@@ -417,16 +352,12 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
         arvioitu_valmistumispvm: estimatedCompletionDate || null,
       };
       
-      console.log("🔧 Tallennettava huoltotyö data:", serviceData);
-      console.log("🔧 Huoltotyö yhdistetään laitteeseen:", deviceId ? "Kyllä (laite_id: " + deviceId + ")" : "Ei (vain huoltotyön tiedot)");
       
       const result = await addServiceMutation.mutateAsync(serviceData);
       
-      console.log("✅ Huoltotyö tallennettu onnistuneesti!", result);
 
       // Tallenna varaosat huoltotyöhön
       if (selectedParts.length > 0) {
-        console.log("💾 Tallennetaan varaosat huoltotyöhön:", selectedParts);
         
         // Get company_id from result
         const companyId = result.company_id;
@@ -446,13 +377,11 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
             if (partError) {
               console.error("❌ Virhe tallentaessa varaosaa:", partError);
             } else {
-              console.log("✅ Varaosa tallennettu huoltotyöhön");
             }
           } catch (error) {
             console.error("❌ Kriittinen virhe varaosan tallennuksessa:", error);
           }
         }
-        console.log("✅ Kaikki varaosat tallennettu!");
         
         // Päivitä query cache jotta varaosat näkyvät heti
         queryClient.invalidateQueries({ queryKey: ['service-parts'] });
@@ -513,23 +442,13 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
   };
 
   const handleDeviceSaveDecision = async (saveDevice: boolean) => {
-    console.log("🔧 === DEVICE SAVE DECISION ===");
-    console.log("🔧 Käyttäjän valinta:", saveDevice ? "TALLENNA LAITTEET-OSIOON" : "VAIN HUOLTOTYÖHÖN");
-    console.log("🔧 Laitteen tiedot:", { 
-      deviceBrand: deviceBrand.trim(), 
-      deviceModel: deviceModel.trim(), 
-      deviceSerial: deviceSerial.trim() 
-    });
-    
     setSaveDevicePermanently(saveDevice);
     setShowDeviceSaveDialog(false);
     
-    console.log("🔧 State päivitetty, saveDevicePermanently:", saveDevice);
     
     // Odota hetki että dialog sulkeutuu ja state päivittyy
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    console.log("🔧 Aloitetaan huoltotyön tallennus...");
     await processServiceSubmission(saveDevice);
   };
 

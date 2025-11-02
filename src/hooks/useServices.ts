@@ -21,7 +21,6 @@ export const useServices = () => {
   return useQuery({
     queryKey: ["services"],
     queryFn: async () => {
-      console.log("Fetching services in development mode...");
       
       // Get all services with new status fields
       const { data: services, error: servicesError } = await supabase

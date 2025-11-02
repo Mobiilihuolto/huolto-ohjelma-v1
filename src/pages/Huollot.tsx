@@ -125,7 +125,6 @@ const Huollot = () => {
   const handleEditService = (service: any) => {
     // Find the original service data with full relationships
     const originalService = servicesData?.find(s => s.id === service.id);
-    console.log("Original service data:", originalService);
     setEditingService(originalService || service);
     setShowEditForm(true);
   };
@@ -157,7 +156,6 @@ const Huollot = () => {
 
   const handleAddParts = (serviceId: string) => {
     // TODO: Implement parts management
-    console.log(`Adding parts for service ${serviceId}`);
     alert('Osien lisäys (toiminto tulossa pian)');
   };
 

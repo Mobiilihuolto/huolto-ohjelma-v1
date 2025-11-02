@@ -255,7 +255,6 @@ const Varasto = () => {
           </div>
           <Button 
             onClick={() => {
-              console.log("Lisää varaosa nappia painettu!");
               setShowAddDialog(true);
             }}
           >
@@ -391,7 +390,6 @@ const Varasto = () => {
                           variant="ghost" 
                           size="sm"
                           onClick={() => {
-                            console.log("Muokkaa nappia painettu:", part.nimi);
                             setEditingPart(part);
                             // Pre-fill edit form with current values
                             setEditPartName(part.nimi);

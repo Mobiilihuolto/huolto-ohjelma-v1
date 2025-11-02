@@ -34,7 +34,6 @@ export const useCustomers = (searchTerm = "") => {
   return useQuery({
     queryKey: ["customers", searchTerm],
     queryFn: async () => {
-      console.log("Fetching customers in development mode...");
       let query = supabase
         .from("asiakkaat")
         .select("*");

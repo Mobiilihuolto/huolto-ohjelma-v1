@@ -132,7 +132,6 @@ export const useEnsureTechnicianExists = () => {
   return useMutation({
     mutationFn: async () => {
       if (!session?.user || !companyId) {
-        console.log("⚠️ Ei käyttäjää tai company_id:tä");
         return;
       }
 
@@ -150,7 +149,6 @@ export const useEnsureTechnicianExists = () => {
       }
 
       if (existing) {
-        console.log("✅ Teknikko on jo olemassa");
         return existing;
       }
 
@@ -183,7 +181,6 @@ export const useEnsureTechnicianExists = () => {
         throw insertError;
       }
 
-      console.log("✅ Teknikko lisätty automaattisesti:", newTechnician);
       return newTechnician;
     },
     onSuccess: () => {

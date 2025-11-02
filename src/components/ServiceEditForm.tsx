@@ -106,16 +106,13 @@ export const ServiceEditForm = ({ open, onOpenChange, service }: ServiceEditForm
   // Initialize form with service data
   useEffect(() => {
     if (service && open) {
-      console.log("Initializing form with service:", service);
       
       // Set customer ID - try multiple paths for customer ID
       const customerId = service.asiakkaat?.id || service.asiakas_id || "";
-      console.log("Setting customer ID:", customerId);
       setSelectedCustomerId(customerId);
       
       // Set device ID  
       const deviceId = service.laitteet?.id || service.laite_id || "";
-      console.log("Setting device ID:", deviceId);
       setSelectedDeviceId(deviceId);
       
       setSelectedStatus(getDisplayStatusValue(service.status) || "");
@@ -137,10 +134,8 @@ export const ServiceEditForm = ({ open, onOpenChange, service }: ServiceEditForm
       setTechnicianNotes(service.teknikon_muistiinpanot || "");
       
       // Load service parts
-      console.log("🔍 ServiceParts data:", serviceParts);
       if (serviceParts && serviceParts.length > 0) {
         const parts = serviceParts.map((sp: any) => {
-          console.log("🔍 Mapping service part:", sp);
           return {
             id: sp.id,
             varaosa_id: sp.varaosa_id,
@@ -149,10 +144,8 @@ export const ServiceEditForm = ({ open, onOpenChange, service }: ServiceEditForm
             yksikkohinta: sp.yksikkohinta
           };
         });
-        console.log("🔍 Mapped parts:", parts);
         setSelectedParts(parts);
       } else {
-        console.log("🔍 No service parts found");
         setSelectedParts([]);
       }
     }

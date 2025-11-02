@@ -14,7 +14,6 @@ export const useDevices = (searchTerm = "") => {
   return useQuery({
     queryKey: ["devices", searchTerm],
     queryFn: async () => {
-      console.log("Fetching devices in development mode...");
       // Hae kaikki laitteet (ei enää asiakaskohtaisia)
       let devicesQuery = supabase.from("laitteet").select("*");
 
@@ -60,10 +59,8 @@ export const useAddDevice = () => {
     mutationFn: async (device: Omit<InsertDevice, 'company_id'>) => {
       if (!companyId) throw new Error("Company ID not found");
       
-      console.log("🔧 useAddDevice: Aloitetaan laitteen tallennus:", device);
       
       const deviceData = { ...device, company_id: companyId };
-      console.log("🔧 useAddDevice: Tallennetaan data:", deviceData);
       
       const { data, error } = await supabase
         .from("laitteet")
@@ -76,11 +73,9 @@ export const useAddDevice = () => {
         throw error;
       }
       
-      console.log("✅ useAddDevice: Tallennus onnistui:", data);
       return data;
     },
     onSuccess: (data) => {
-      console.log("🔧 useAddDevice: onSuccess kutsuttu:", data);
       // Invalidoi kaikki device-kyselyt
       queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
@@ -106,7 +101,6 @@ export const useUpdateDevice = () => {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<InsertDevice> }) => {
-      console.log("🔧 useUpdateDevice: Päivitetään laite:", id, updates);
       
       const { data, error } = await supabase
         .from("laitteet")
@@ -120,7 +114,6 @@ export const useUpdateDevice = () => {
         throw error;
       }
       
-      console.log("✅ useUpdateDevice: Päivitys onnistui:", data);
       return data;
     },
     onSuccess: () => {

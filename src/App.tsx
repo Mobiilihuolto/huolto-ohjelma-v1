@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,22 +8,33 @@ import { Layout } from "@/components/layout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import Asiakkaat from "./pages/Asiakkaat";
-import Laitteet from "./pages/Laitteet";
-import Huollot from "./pages/Huollot";
-import HuoltoKaavake from "./pages/HuoltoKaavake";
-import Laskutus from "./pages/Laskutus";
-import LaskuEsikatselu from "./pages/LaskuEsikatselu";
-import Varasto from "./pages/Varasto";
-import Takuu from "./pages/Takuu";
-import Asetukset from "./pages/Asetukset";
-import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import NotFound from "./pages/NotFound";
+import { Loader2 } from "lucide-react";
 import "@/i18n/config";
 
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Asiakkaat = lazy(() => import("./pages/Asiakkaat"));
+const Laitteet = lazy(() => import("./pages/Laitteet"));
+const Huollot = lazy(() => import("./pages/Huollot"));
+const HuoltoKaavake = lazy(() => import("./pages/HuoltoKaavake"));
+const Laskutus = lazy(() => import("./pages/Laskutus"));
+const LaskuEsikatselu = lazy(() => import("./pages/LaskuEsikatselu"));
+const Varasto = lazy(() => import("./pages/Varasto"));
+const Takuu = lazy(() => import("./pages/Takuu"));
+const Asetukset = lazy(() => import("./pages/Asetukset"));
+const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
 const queryClient = new QueryClient();
+
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex flex-col items-center gap-4">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="text-lg text-muted-foreground">Ladataan...</div>
+    </div>
+  </div>
+);
 
 const App = () => {
   return (
@@ -33,9 +45,10 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/" element={
                 <ProtectedRoute>
                   <Layout>
@@ -105,6 +118,7 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

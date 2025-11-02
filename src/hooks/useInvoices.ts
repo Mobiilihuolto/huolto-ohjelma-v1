@@ -17,7 +17,6 @@ export const useInvoices = (searchTerm: string = "") => {
   return useQuery({
     queryKey: ["invoices", searchTerm],
     queryFn: async () => {
-      console.log("Fetching invoices...");
       
       let query = supabase
         .from("laskut")

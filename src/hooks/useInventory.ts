@@ -132,7 +132,6 @@ export const useServiceParts = (serviceId?: string) => {
         .eq('huolto_id', serviceId);
 
       if (error) throw error;
-      console.log('📦 Loaded service parts:', data);
       return data;
     },
     enabled: !!serviceId
