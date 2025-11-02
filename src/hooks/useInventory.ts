@@ -233,17 +233,41 @@ export const useUpdateInventorySettings = () => {
   return useMutation({
     mutationFn: async (data: Partial<InventorySettings>) => {
       if (!companyId) throw new Error("Company ID not found");
-      
-      const { data: result, error } = await supabase
+
+      const { data: existingSettings } = await supabase
         .from('varasto_asetukset')
-        .update(data)
+        .select('id')
         .eq('company_id', companyId)
         .eq('is_active', true)
-        .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return result;
+      if (existingSettings) {
+        const { data: result, error } = await supabase
+          .from('varasto_asetukset')
+          .update(data)
+          .eq('company_id', companyId)
+          .eq('is_active', true)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return result;
+      } else {
+        const { data: result, error } = await supabase
+          .from('varasto_asetukset')
+          .insert({
+            company_id: companyId,
+            varasto_kaytossa: data.varasto_kaytossa ?? false,
+            automaattinen_saldo_vahennys: data.automaattinen_saldo_vahennys ?? true,
+            varoita_matalasta_saldosta: data.varoita_matalasta_saldosta ?? true,
+            is_active: true
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return result;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-settings'] });
