@@ -177,6 +177,7 @@ export const useAddServicePart = () => {
       const { data: settings } = await supabase
         .from('varasto_asetukset')
         .select('automaattinen_saldo_vahennys')
+        .eq('company_id', companyId)
         .eq('is_active', true)
         .maybeSingle();
 
