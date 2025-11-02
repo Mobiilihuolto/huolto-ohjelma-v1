@@ -110,7 +110,7 @@ export const ServiceForm = ({ open, onOpenChange }: ServiceFormProps) => {
 
   // Set default values from settings
   const defaultHourlyRate = hourlyRateSettings?.[0];
-  const defaultWarranty = warrantySettings?.find(w => w.nimi.includes("Normaali")) || warrantySettings?.[0];
+  const defaultWarranty = warrantySettings?.find(w => w.nimi?.includes("Normaali")) || warrantySettings?.[0];
 
   // Auto-select technician if user has teknikko role
   useEffect(() => {
