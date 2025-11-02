@@ -183,13 +183,19 @@ export const useAddServicePart = () => {
 
       // Reduce stock if automatic deduction is enabled
       if (settings?.automaattinen_saldo_vahennys) {
-        const { error: updateError } = await supabase.rpc('reduce_part_stock', {
+        const { data: reduceResult, error: updateError } = await supabase.rpc('reduce_part_stock', {
           part_id: partData.varaosa_id,
           quantity: partData.maara
         });
 
         if (updateError) {
           console.error('Failed to reduce stock:', updateError);
+          throw new Error('Stock reduction failed');
+        }
+
+        if (reduceResult && !reduceResult.success) {
+          console.error('Stock reduction failed:', reduceResult.error);
+          throw new Error(reduceResult.error || 'Stock reduction failed');
         }
       }
 
