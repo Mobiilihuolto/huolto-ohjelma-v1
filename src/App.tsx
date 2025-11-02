@@ -1,13 +1,14 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { LicenseActivation } from "@/components/LicenseActivation";
 import { Loader2 } from "lucide-react";
 import "@/i18n/config";
 
@@ -37,18 +38,70 @@ const LoadingFallback = () => (
 );
 
 const App = () => {
+  const [isLicensed, setIsLicensed] = useState<boolean | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [currentCompanyId, setCurrentCompanyId] = useState<string>('');
+
+  useEffect(() => {
+    const checkLicense = async () => {
+      if (!window.electron) {
+        console.warn('Running in browser mode - skipping license check');
+        setIsLicensed(true);
+        return;
+      }
+
+      try {
+        const result = await window.electron.checkLicense();
+
+        if (result.valid) {
+          const profileResult = await window.electron.db.get(
+            'SELECT user_id, company_id FROM profiles WHERE role = ? LIMIT 1',
+            ['admin']
+          );
+
+          if (profileResult.success && profileResult.data) {
+            setCurrentUserId(profileResult.data.user_id);
+            setCurrentCompanyId(profileResult.data.company_id);
+            setIsLicensed(true);
+          } else {
+            setIsLicensed(false);
+          }
+        } else {
+          setIsLicensed(false);
+        }
+      } catch (error) {
+        console.error('License check error:', error);
+        setIsLicensed(false);
+      }
+    };
+
+    checkLicense();
+  }, []);
+
+  const handleLicenseActivated = (userId: string, companyId: string) => {
+    setCurrentUserId(userId);
+    setCurrentCompanyId(companyId);
+    setIsLicensed(true);
+  };
+
+  if (isLicensed === null) {
+    return <LoadingFallback />;
+  }
+
+  if (!isLicensed) {
+    return <LicenseActivation onActivated={handleLicenseActivated} />;
+  }
+
   return (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
+        <HashRouter>
+          <AuthProvider userId={currentUserId} companyId={currentCompanyId}>
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/" element={
                 <ProtectedRoute>
                   <Layout>
@@ -115,12 +168,11 @@ const App = () => {
                   </Layout>
                 </ProtectedRoute>
               } />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             </Suspense>
           </AuthProvider>
-        </BrowserRouter>
+        </HashRouter>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
