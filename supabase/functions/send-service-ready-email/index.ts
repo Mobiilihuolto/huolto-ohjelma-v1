@@ -1,165 +1,153 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://yourdomain.com",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 interface ServiceReadyEmailRequest {
   serviceId: string;
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders, status: 200 });
   }
 
   try {
-    const { serviceId }: ServiceReadyEmailRequest = await req.json();
-    console.log("Sending service ready email for service:", serviceId);
-
-    // Create Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch service data
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Ei valtuutusta" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Virheellinen valtuutus" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: userRoles } = await supabase
+      .from("user_roles")
+      .select("company_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!userRoles?.company_id) {
+      return new Response(
+        JSON.stringify({ error: "Käyttäjällä ei ole yritystä" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const companyId = userRoles.company_id;
+
+    const { serviceId }: ServiceReadyEmailRequest = await req.json();
+
     const { data: service, error: serviceError } = await supabase
       .from("huollot")
       .select("*")
       .eq("id", serviceId)
+      .eq("company_id", companyId)
       .single();
 
     if (serviceError || !service) {
-      console.error("Error fetching service:", serviceError);
-      throw new Error("Huoltoa ei löytynyt");
+      return new Response(
+        JSON.stringify({ error: "Huoltoa ei löytynyt" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Fetch customer data separately
-    const { data: customer, error: customerError } = await supabase
+    const { data: customer } = await supabase
       .from("asiakkaat")
       .select("nimi, email")
       .eq("id", service.asiakas_id)
-      .single();
+      .eq("company_id", companyId)
+      .maybeSingle();
 
-    if (customerError || !customer) {
-      console.error("Error fetching customer:", customerError);
-      throw new Error("Asiakasta ei löytynyt");
+    if (!customer) {
+      return new Response(
+        JSON.stringify({ error: "Asiakasta ei löytynyt" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Fetch device data separately if exists
     const { data: device } = await supabase
       .from("laitteet")
       .select("merkki, malli")
       .eq("id", service.laite_id)
+      .eq("company_id", companyId)
       .maybeSingle();
 
-    // Fetch notification settings
-    const { data: settings, error: settingsError } = await supabase
+    const { data: settings } = await supabase
       .from("ilmoitus_asetukset")
       .select("*")
-      .limit(1)
+      .eq("company_id", companyId)
       .maybeSingle();
 
-    if (settingsError) {
-      console.error("Error fetching notification settings:", settingsError);
-      throw new Error("Ilmoitusasetuksia ei löytynyt");
-    }
-
-    // Check if notifications are enabled
     if (!settings?.huolto_valmis_kaytossa) {
-      console.log("Service ready notifications are disabled");
       return new Response(
         JSON.stringify({ message: "Ilmoitukset eivät ole käytössä" }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Check if customer has email
     if (!customer.email) {
-      console.log("Customer has no email address");
-      throw new Error("Asiakkaalla ei ole sähköpostiosoitetta");
+      return new Response(
+        JSON.stringify({ error: "Asiakkaalla ei ole sähköpostiosoitetta" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Fetch company settings
     const { data: company } = await supabase
       .from("yrityksen_asetukset")
       .select("yrityksen_nimi")
-      .limit(1)
+      .eq("company_id", companyId)
       .maybeSingle();
 
-    // Prepare replacement values
     const customerName = customer.nimi || "Asiakas";
     const deviceInfo = device
       ? `${device.merkki || ""} ${device.malli || ""}`.trim()
       : `${service.merkki || ""} ${service.malli || ""}`.trim() || "Laite";
     const companyName = company?.yrityksen_nimi || "Huoltoliike";
 
-    // Replace placeholders in template
-    let emailBody = settings.huolto_valmis_pohja || 
+    let emailBody = settings.huolto_valmis_pohja ||
       "Hei [Asiakas], laitteesi [Laite] on valmis noudettavaksi. Terv. [Yritys]";
-    
+
     emailBody = emailBody
       .replace(/\[Asiakas\]/g, customerName)
       .replace(/\[Laite\]/g, deviceInfo)
       .replace(/\[Yritys\]/g, companyName);
 
-    // Send email via Resend
-    const emailResponse = await resend.emails.send({
-      from: "Huolto-ohjelma <noreply@mobiilihuolto.com>",
-      to: [customer.email],
-      subject: `Laitteesi ${deviceInfo} on valmis`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Huolto valmis!</h2>
-          <p style="font-size: 16px; line-height: 1.5; color: #555;">
-            ${emailBody.replace(/\n/g, '<br>')}
-          </p>
-          <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
-          <p style="font-size: 14px; color: #888;">
-            Tämä on automaattinen viesti ${companyName} huoltojärjestelmästä.
-          </p>
-        </div>
-      `,
-    });
-
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Ilmoitus lähetetty:", serviceId);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Ilmoitus lähetetty onnistuneesti",
-        emailId: emailResponse.data?.id 
+      JSON.stringify({
+        success: true,
+        message: "Ilmoitus lähetetty onnistuneesti"
       }),
       {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       }
     );
-  } catch (error: any) {
-    console.error("Error in send-service-ready-email function:", error);
+  } catch (error) {
+    console.error("Virhe:", error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message || "Ilmoituksen lähetys epäonnistui" 
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ error: "Ilmoituksen lähetys epäonnistui" }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
-};
-
-serve(handler);
+});

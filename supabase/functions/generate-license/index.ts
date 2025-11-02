@@ -1,9 +1,10 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://yourdomain.com",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 interface GenerateLicenseRequest {
@@ -13,73 +14,78 @@ interface GenerateLicenseRequest {
 }
 
 function generateLicenseKey(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const segment1 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  const segment2 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const segment1 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  const segment2 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
   const year = new Date().getFullYear();
   return `MOBILE-${year}-${segment1}${segment2}`;
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders, status: 200 });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get user from auth header
-    const authHeader = req.headers.get('Authorization');
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Ei valtuutusta' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Ei valtuutusta" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
+    const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      console.error('Auth error:', authError);
       return new Response(
-        JSON.stringify({ error: 'Virheellinen valtuutus' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Virheellinen valtuutus" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Check if user is admin
-    const { data: roles, error: rolesError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id);
+    const { data: userRoles } = await supabase
+      .from("user_roles")
+      .select("role, company_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    if (rolesError || !roles?.some(r => r.role === 'admin')) {
-      console.error('Not admin:', rolesError);
+    if (!userRoles?.company_id) {
       return new Response(
-        JSON.stringify({ error: 'Vain adminit voivat luoda lisenssejä' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Käyttäjällä ei ole yritystä" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    if (userRoles.role !== "admin") {
+      return new Response(
+        JSON.stringify({ error: "Vain adminit voivat luoda lisenssejä" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const companyId = userRoles.company_id;
 
     const body: GenerateLicenseRequest = await req.json();
     const {
       maxUsers = 5,
       expiresInDays = null,
-      notes = ''
+      notes = ""
     } = body;
 
-    // Generate unique license key
     let licenseKey = generateLicenseKey();
     let attempts = 0;
     while (attempts < 10) {
       const { data: existing } = await supabase
-        .from('licenses')
-        .select('license_key')
-        .eq('license_key', licenseKey)
-        .single();
+        .from("licenses")
+        .select("license_key")
+        .eq("license_key", licenseKey)
+        .maybeSingle();
 
       if (!existing) break;
       licenseKey = generateLicenseKey();
@@ -88,60 +94,55 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (attempts >= 10) {
       return new Response(
-        JSON.stringify({ error: 'Lisenssinavain generointiin epäonnistui' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Lisenssinavain generointiin epäonnistui" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Calculate expiration date
-    const expiresAt = expiresInDays 
+    const expiresAt = expiresInDays
       ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
       : null;
 
-    // Insert new license
     const { data: license, error: insertError } = await supabase
-      .from('licenses')
+      .from("licenses")
       .insert({
         license_key: licenseKey,
         max_users: maxUsers,
         expires_at: expiresAt,
-        notes: notes || `Luotu ${new Date().toLocaleDateString('fi-FI')}`,
-        is_used: false
+        notes: notes || `Luotu ${new Date().toLocaleDateString("fi-FI")}`,
+        is_used: false,
+        company_id: companyId
       })
       .select()
       .single();
 
     if (insertError) {
-      console.error('Insert error:', insertError);
       return new Response(
-        JSON.stringify({ error: 'Lisenssin tallennus epäonnistui', details: insertError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Lisenssin tallennus epäonnistui" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log('License created:', licenseKey);
+    console.log("Lisenssi luotu:", licenseKey);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
         license: license
       }),
       {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
       }
     );
-
-  } catch (error: any) {
-    console.error('Error in generate-license function:', error);
+  } catch (error) {
+    console.error("Virhe:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Lisenssin luonti epäonnistui" }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
       }
     );
   }
-};
-
-serve(handler);
+});

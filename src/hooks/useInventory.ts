@@ -83,36 +83,48 @@ export const useInventorySettings = () => {
 
 // Hook to get all inventory parts
 export const useInventoryParts = () => {
+  const { data: companyId } = useCompanyId();
+
   return useQuery({
-    queryKey: ['inventory-parts'],
+    queryKey: ['inventory-parts', companyId],
     queryFn: async () => {
+      if (!companyId) return [];
+
       const { data, error } = await supabase
         .from('varaosat')
         .select('*')
+        .eq('company_id', companyId)
         .eq('is_active', true)
         .order('nimi');
 
       if (error) throw error;
       return data as InventoryPart[];
-    }
+    },
+    enabled: !!companyId
   });
 };
 
 // Hook to get available inventory parts (in stock)
 export const useAvailableInventoryParts = () => {
+  const { data: companyId } = useCompanyId();
+
   return useQuery({
-    queryKey: ['available-inventory-parts'],
+    queryKey: ['available-inventory-parts', companyId],
     queryFn: async () => {
+      if (!companyId) return [];
+
       const { data, error } = await supabase
         .from('varaosat')
         .select('*')
+        .eq('company_id', companyId)
         .eq('is_active', true)
         .gt('saldo', 0)
         .order('nimi');
 
       if (error) throw error;
       return data as InventoryPart[];
-    }
+    },
+    enabled: !!companyId
   });
 };
 
