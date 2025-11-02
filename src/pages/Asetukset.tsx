@@ -43,8 +43,6 @@ import { NotificationSettingsForm } from "@/components/NotificationSettingsForm"
 import { UserManagementForm } from "@/components/UserManagementForm";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LicenseGenerator } from "@/components/LicenseGenerator";
-import { LicenseList } from "@/components/LicenseList";
 
 const Asetukset = () => {
   const { canManageSettings, canManageUsers, isLoading: permissionsLoading } = useUserPermissions();
@@ -872,7 +870,6 @@ const Asetukset = () => {
         <TabsList>
           <TabsTrigger value="company">Yrityksen tiedot</TabsTrigger>
           {canManageUsers && <TabsTrigger value="users">Käyttäjät</TabsTrigger>}
-          {canManageSettings && <TabsTrigger value="licenses">Lisenssit</TabsTrigger>}
           {canManageSettings && <TabsTrigger value="status">Statukset</TabsTrigger>}
           {canManageSettings && <TabsTrigger value="pricing">Hinnoittelu</TabsTrigger>}
           {canManageSettings && <TabsTrigger value="warranty">Takuu</TabsTrigger>}
@@ -902,13 +899,6 @@ const Asetukset = () => {
         {canManageUsers && (
           <TabsContent value="users">
             <UserManagementForm />
-          </TabsContent>
-        )}
-
-        {canManageSettings && (
-          <TabsContent value="licenses" className="space-y-6">
-            <LicenseGenerator />
-            <LicenseList />
           </TabsContent>
         )}
 

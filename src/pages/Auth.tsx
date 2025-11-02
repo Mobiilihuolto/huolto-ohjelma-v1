@@ -17,7 +17,6 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [licenseKey, setLicenseKey] = useState("");
   const [resetEmail, setResetEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, user, resetPassword } = useAuth();
@@ -67,8 +66,8 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password || !fullName || !licenseKey) {
+
+    if (!email || !password || !fullName) {
       toast({
         title: t('common:error'),
         description: t('auth:errors.fillAllFields'),
@@ -87,20 +86,11 @@ export default function Auth() {
     }
 
     setLoading(true);
-    const { error } = await signUp(email, password, fullName, licenseKey);
+    const { error } = await signUp(email, password, fullName);
     setLoading(false);
 
     if (error) {
-      // Check for license-specific errors
-      if (error.message.includes("Lisenssinavain puuttuu") || 
-          error.message.includes("Virheellinen tai jo käytetty lisenssinavain") ||
-          error.message.includes("Lisenssinavain on vanhentunut")) {
-        toast({
-          title: t('auth:errors.signUpFailed'),
-          description: error.message,
-          variant: "destructive",
-        });
-      } else if (error.message.includes("already registered")) {
+      if (error.message.includes("already registered")) {
         toast({
           title: t('auth:errors.signUpFailed'),
           description: t('auth:errors.emailExists'),
@@ -121,7 +111,6 @@ export default function Auth() {
       setEmail("");
       setPassword("");
       setFullName("");
-      setLicenseKey("");
     }
   };
 
@@ -252,22 +241,6 @@ export default function Auth() {
                   />
                   <p className="text-xs text-muted-foreground">
                     {t('auth:errors.passwordLength')}
-                  </p>
-                </div>
-                <div className="space-y-2 pt-2 border-t border-border">
-                  <Label htmlFor="signup-license" className="text-base font-semibold">{t('auth:licenseKey')}</Label>
-                  <Input
-                    id="signup-license"
-                    type="text"
-                    placeholder={t('auth:enterLicenseKey')}
-                    value={licenseKey}
-                    onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
-                    disabled={loading}
-                    required
-                    className="font-mono text-base"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {t('auth:licenseKeyDescription')}
                   </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
